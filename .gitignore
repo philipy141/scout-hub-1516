@@ -1,0 +1,16 @@
+# Virtual environments
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# SQLite DBs
+*.db
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# OS files
+.DS_Store
+Thumbs.db

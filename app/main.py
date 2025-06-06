@@ -5,30 +5,26 @@ import streamlit as st
 from services.data_loader import load_players_df
 from services.filter_utils import (
     available_leagues, available_teams, available_positions, available_roles,
-    filter_by_league, filter_by_team, filter_by_position, filter_by_role,
-    filter_by_name, apply_all_filters,
+    apply_all_filters,
 )
-from components.player_grid import render_grid
-from components.player_detail import render_detail
+from components.player_detail import render_detail   # ← keeps your drawer
 
-# ─── Page config ──────────────────────────────────────────────────────────
+# ─────────────────────── Page config ─────────────────────────────────────
 st.set_page_config(page_title="Scout Hub 15/16", layout="wide")
 st.title("Scout Hub 2015/16 – MVP")
 
-# ─── Load full dataset ────────────────────────────────────────────────────
+# ─────────────────────── Load dataset ────────────────────────────────────
 df_all = load_players_df(force=True)
 
-# ─── Sidebar filters ──────────────────────────────────────────────────────
+# ─────────────────────── Sidebar filters ────────────────────────────────
 st.sidebar.header("Filters")
 
-# League
 league = st.sidebar.selectbox(
     "League",
     options=["All"] + available_leagues(df_all),
     index=0,
 )
 
-# Teams (cascading)
 team_options = available_teams(df_all, league)
 teams = st.sidebar.multiselect(
     "Teams",
@@ -36,7 +32,6 @@ teams = st.sidebar.multiselect(
     default="All teams",
 )
 
-# Positions
 pos_options = available_positions(df_all)
 positions = st.sidebar.multiselect(
     "Positions",
@@ -44,7 +39,6 @@ positions = st.sidebar.multiselect(
     default="All positions",
 )
 
-# Roles
 role_options = available_roles(df_all)
 roles = st.sidebar.multiselect(
     "Roles",
@@ -52,29 +46,29 @@ roles = st.sidebar.multiselect(
     default="All roles",
 )
 
-# Name search
 search_name = st.sidebar.text_input("Search by name (≥3 chars)", value="")
 
-# ─── Apply all filters at once ────────────────────────────────────────────
+# ─────────────────────── Apply filters ──────────────────────────────────
 df_search = apply_all_filters(df_all, league, teams, positions, roles, search_name)
 st.success(f"{len(df_search):,} players in view")
 
-# ─── Render interactive player grid ───────────────────────────────────────
-selected_now = render_grid(df_search, key="player_grid_main")
+# ─────────────────────── Table (native) ─────────────────────────────────
+# Pick the columns you want to display
+cols_to_show = ["player", "team", "minutes_played"]  # add "age" if your table has it
+st.dataframe(
+    df_search[cols_to_show],
+    use_container_width=True,
+    hide_index=True,
+)
 
-# Maintain selection across reruns (especially for Streamlit Cloud)
-if selected_now is not None:
-    st.session_state["selected_player"] = selected_now
+# ─────────────────────── Player selector ────────────────────────────────
+player_name = st.selectbox(
+    "Select player to see details ▶️",
+    ["—"] + df_search["player"].tolist(),
+    index=0,
+    key="player_selectbox",
+)
 
-# Retrieve from session state
-player = st.session_state.get("selected_player")
-
-# Optional: Debug
-st.write("DEBUG selected_now:", selected_now)
-st.write("DEBUG session player:", player)
-
-# ─── Player detail drawer ─────────────────────────────────────────────────
-if player is not None:
-    render_detail(player)
-else:
-    st.sidebar.info("Select a player row to see details ▶️")
+if player_name != "—":
+    player_row = df_search[df_search["player"] == player_name].iloc[0]
+    render_detail(player_row)

@@ -25,3 +25,19 @@ def filter_by_league(df: pd.DataFrame, league: str | None) -> pd.DataFrame:
     if "competition" not in df.columns:
         return df  # nothing to filter on
     return df[df["competition"] == league]
+
+
+def available_teams(df: pd.DataFrame, league: str | None) -> list[str]:
+    """Return sorted list of teams for the chosen league."""
+    if league is None or league.lower().startswith("all"):
+        teams = df["team"].dropna().unique()
+    else:
+        teams = df.loc[df["competition"] == league, "team"].dropna().unique()
+    return sorted(teams)
+
+
+def filter_by_team(df: pd.DataFrame, teams: list[str] | None) -> pd.DataFrame:
+    """Filter DataFrame by team(s). Empty / None returns original df."""
+    if not teams or "All teams" in teams:
+        return df
+    return df[df["team"].isin(teams)]

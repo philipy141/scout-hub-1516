@@ -60,12 +60,18 @@ df_search = apply_all_filters(df_all, league, teams, positions, roles, search_na
 st.success(f"{len(df_search):,} players in view")
 
 # ─── Render interactive grid (single instance) ───────────────────────────
-selected_player = render_grid(df_search, key="player_grid_main")
+# one interactive grid ---------------------------------------------------
+selected_now = render_grid(df_search, key="player_grid_main")
 
-if selected_player is not None:
-    st.write("✅ Row selected:", selected_player["Name"])
+# keep selection across reruns (Cloud is slower → empty list on rerun)
+if selected_now is not None:                       # ← NEW
+    st.session_state["selected_player"] = selected_now  # ← NEW
+
+player = st.session_state.get("selected_player")   # may be None first run
+if player is not None:
+    render_detail(player)
 else:
-    st.info("Select a player row to see details ▶️")
+    st.sidebar.info("Select a player row to see details ▶️")
 
 # DEBUG LINE: print to console/log
 st.write("Selected:", selected_player)

@@ -59,29 +59,18 @@ df_search = apply_all_filters(df_all, league, teams, positions, roles, search_na
 
 st.success(f"{len(df_search):,} players in view")
 
-# ─── Render interactive grid (single instance) ───────────────────────────
-selected_player = render_grid(df_search, key="player_grid_main")
-# one interactive grid ---------------------------------------------------
+# Render interactive grid (just once)
 selected_now = render_grid(df_search, key="player_grid_main")
 
-# keep selection across reruns (Cloud is slower → empty list on rerun)
-if selected_now is not None:                       # ← NEW
-    st.session_state["selected_player"] = selected_now  # ← NEW
+# Keep selection across reruns (especially important on Streamlit Cloud)
+if selected_now is not None:
+    st.session_state["selected_player"] = selected_now
 
-player = st.session_state.get("selected_player")   # may be None first run
+# Retrieve from session_state
+player = st.session_state.get("selected_player")
+
+# Conditional: Show player drawer
 if player is not None:
     render_detail(player)
 else:
     st.sidebar.info("Select a player row to see details ▶️")
-
-
-# DEBUG LINE: print to console/log
-st.write("Selected:", selected_player)
-
-# ─── Optional player drawer / debug print ────────────────────────────────
-if selected_player is not None:
-    render_detail(selected_player)           # proper drawer
-    # st.write("You selected:", selected_player["Name"])  # quick debug
-else:
-    st.sidebar.info("Select a player row to see details ▶️")
-

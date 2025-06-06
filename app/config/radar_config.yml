@@ -1,0 +1,72 @@
+#  Radar-chart metric schema – one list of 8 metrics per role
+#  Keys must exactly match the values in the “role” column of your DataFrame
+
+Centre-Back:
+  - progressive_passes_per90
+  - pass_completion_pct
+  - tackles_won_per90
+  - interceptions_per90
+  - blocks_shots_per90
+  - aerials_duels_won_pct
+  - pressures_successful_per90
+  - xg_overperf            # proxy for set-piece threat
+
+Full-Back / Wing-Back:
+  - progressive_passes_per90
+  - crosses_completed_per90
+  - progressive_carries_per90
+  - tackles_won_per90
+  - interceptions_per90
+  - ball_losses_per90
+  - xa_per90
+  - carries_into_pen_area_per90
+
+Defensive-Midfielder:
+  - progressive_passes_per90
+  - pass_completion_pct
+  - pressures_successful_per90
+  - interceptions_per90
+  - blocks_passes_per90
+  - progressive_carries_per90
+  - ball_losses_per90
+  - relieve_pressure_passes_per90
+
+Box-to-Box Midfielder:
+  - progressive_passes_per90
+  - progressive_carries_per90
+  - xA
+  - goals_per90
+  - tackles_won_per90
+  - interceptions_per90
+  - ball_losses_per90
+  - xg_overperf
+
+Attacking-Midfielder / 10:
+  - xa_per90
+  - key_passes_per90
+  - progressive_passes_per90
+  - progressive_carries_per90
+  - goals_per90
+  - shots_per90
+  - xg_per_shot
+  - pressures_successful_per90   # off-ball work-rate
+
+Winger / Wide-Forward:
+  - progressive_carries_per90
+  - crosses_completed_per90
+  - xa_per90
+  - goals_per90
+  - shots_per90
+  - dribble_success_rate
+  - carries_into_pen_area_per90
+  - ball_losses_per90
+
+Striker:
+  - goals_per90
+  - npxg_per90
+  - xg_per_shot
+  - shot_on_target_pct
+  - one_touch_shot_pct
+  - xa_per90
+  - aerials_duels_won_pct
+  - pressures_successful_per90

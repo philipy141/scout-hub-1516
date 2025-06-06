@@ -7,6 +7,7 @@ from services.filter_utils import (
     available_roles,     filter_by_role,
     filter_by_name,
 )
+from components.player_grid import render_grid
 
 st.set_page_config(page_title="Scout Hub 15/16", layout="wide")
 st.title("Scout Hub 2015/16 – MVP")
@@ -57,4 +58,4 @@ df_search = filter_by_name(df_final, name_query)
 
 # ── Main body ─────────────────────────────────────────────────────────────
 st.success(f"Loaded {len(df_search):,} player rows")
-st.dataframe(df_search.head(50), use_container_width=True)
+render_grid(df_search)

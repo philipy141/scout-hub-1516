@@ -2,8 +2,8 @@ import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import streamlit as st
-from services.services.data_loader import load_players_df
-from services.services.filter_utils import (
+from services.data_loader import load_players_df
+from services.filter_utils import (
     available_leagues, available_teams, available_positions, available_roles,
     filter_by_league, filter_by_team, filter_by_position, filter_by_role,
     filter_by_name, apply_all_filters,

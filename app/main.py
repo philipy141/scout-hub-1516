@@ -77,15 +77,3 @@ if selected_player is not None:
 else:
     st.sidebar.info("Select a player row to see details ▶️")
 
-# one interactive grid ---------------------------------------------------
-selected_now = render_grid(df_search, key="player_grid_main")
-
-# keep selection across reruns (Cloud is slower → empty list on rerun)
-if selected_now is not None:                       # ← NEW
-    st.session_state["selected_player"] = selected_now  # ← NEW
-
-player = st.session_state.get("selected_player")   # may be None first run
-if player is not None:
-    render_detail(player)
-else:
-    st.sidebar.info("Select a player row to see details ▶️")

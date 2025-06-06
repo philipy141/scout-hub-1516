@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from st_aggrid import AgGrid, GridOptionsBuilder
+from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 
 VISIBLE_COLS = ["player", "team", "minutes_played"]
 NICE_NAMES = {"player": "Name", "team": "Team", "minutes_played": "Minutes"}
@@ -16,19 +16,24 @@ def render_grid(df: pd.DataFrame, key: str = "player_grid_main") -> pd.Series | 
 
     gb = GridOptionsBuilder.from_dataframe(ready)
     gb.configure_default_column(resizable=True, filter=True, sortable=True)
-    gb.configure_selection("single")
+    gb.configure_selection("single")  # Enable row selection
 
     grid_response = AgGrid(
         ready,
         gridOptions=gb.build(),
         height=480,
         theme="alpine",
-        key=key,  # 💡 This enables consistent selection across reruns
+        key=key,
+        update_mode=GridUpdateMode.SELECTION_CHANGED,
+        allow_unsafe_jscode=True,
+
     )
 
     rows = grid_response["selected_rows"]
-    if rows is not None and len(rows) > 0:
+
+    if isinstance(rows, list) and len(rows) > 0:
         return pd.Series(rows[0])
+
     return None
 
 

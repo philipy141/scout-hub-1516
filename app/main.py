@@ -60,6 +60,7 @@ df_search = apply_all_filters(df_all, league, teams, positions, roles, search_na
 st.success(f"{len(df_search):,} players in view")
 
 # ─── Render interactive grid (single instance) ───────────────────────────
+selected_player = render_grid(df_search, key="player_grid_main")
 # one interactive grid ---------------------------------------------------
 selected_now = render_grid(df_search, key="player_grid_main")
 
@@ -72,6 +73,7 @@ if player is not None:
     render_detail(player)
 else:
     st.sidebar.info("Select a player row to see details ▶️")
+
 
 # DEBUG LINE: print to console/log
 st.write("Selected:", selected_player)

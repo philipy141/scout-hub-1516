@@ -1,5 +1,6 @@
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+st.cache_data.clear()
 
 import streamlit as st
 from services.data_loader import load_players_df

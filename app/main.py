@@ -59,9 +59,6 @@ df_search = apply_all_filters(df_all, league, teams, positions, roles, search_na
 
 st.success(f"{len(df_search):,} players in view")
 
-st.write("DF Search Head:")
-st.write(df_search.head())  # This helps you confirm df_search exists
-
 # Render interactive grid (just once)
 selected_now = render_grid(df_search, key="player_grid_main")
 

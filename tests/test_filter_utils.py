@@ -11,6 +11,9 @@ from app.services.filter_utils import (
     filter_by_role,
 )
 
+from app.services.filter_utils import filter_by_name
+
+
 def test_filter_returns_subset():
     data = {
         "competition": ["Premier League", "La Liga", "Premier League"],
@@ -59,3 +62,12 @@ def test_position_role_filters():
 
     out2 = filter_by_role(df, ["LB", "CM"])
     assert len(out2) == 2 and set(out2["role"]) == {"LB", "CM"}
+
+def test_fuzzy_name_search():
+    df = pd.DataFrame({
+        "player": ["Álvaro Morata", "Erling Haaland", "Kylian Mbappé"],
+        "metric": [1, 2, 3],
+    })
+    assert len(filter_by_name(df, "mora")) == 1          # case-insensitive
+    assert len(filter_by_name(df, "Haá")) == 1           # accent & substr
+    assert len(filter_by_name(df, "xy")) == len(df)      # <3 chars → no filter

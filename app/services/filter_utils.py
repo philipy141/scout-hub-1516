@@ -1,4 +1,6 @@
 import pandas as pd
+from unidecode import unidecode
+
 
 # -------- config --------
 FALLBACK_LEAGUES = [
@@ -68,3 +70,17 @@ def filter_by_role(df: pd.DataFrame, roles: list[str] | None) -> pd.DataFrame:
     if not roles or "All roles" in roles:
         return df
     return df[df["role"].isin(roles)]
+
+
+# ─────────────────── NAME SEARCH HELPER ────────────────────────────────────
+def normalize(text: str) -> str:
+    """Lower-case and strip accents for robust comparison."""
+    return unidecode(text).lower()
+
+def filter_by_name(df: pd.DataFrame, query: str | None) -> pd.DataFrame:
+    """Return subset whose player name contains the query (accent + case insensitive)."""
+    if not query or len(query) < 3:
+        return df
+    q = normalize(query)
+    mask = df["player"].fillna("").apply(lambda x: q in normalize(x))
+    return df[mask]

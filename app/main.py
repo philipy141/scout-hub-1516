@@ -5,12 +5,13 @@ from services.filter_utils import (
     available_teams,   filter_by_team,
     available_positions, filter_by_position,
     available_roles,     filter_by_role,
+    filter_by_name,
 )
 
 st.set_page_config(page_title="Scout Hub 15/16", layout="wide")
 st.title("Scout Hub 2015/16 – MVP")
 
-df_all = load_players_df()
+df_all = load_players_df(force=True)
 st.success(f"Loaded {len(df_all):,} player rows")
 st.info("🚧 Feature work in progress. Use the sidebar to navigate.")
 
@@ -50,6 +51,10 @@ roles_selected = st.sidebar.multiselect(
 )
 df_final = filter_by_role(df_pos, roles_selected)
 
-# ── Main body ───────────────────────────────────────────────────────────
-st.success(f"Loaded {len(df_final):,} player rows")
-st.dataframe(df_final.head(50), use_container_width=True)
+# ── Sidebar: Name search ──────────────────────────────────────────────────
+name_query = st.sidebar.text_input("Search player (≥3 chars)")
+df_search = filter_by_name(df_final, name_query)
+
+# ── Main body ─────────────────────────────────────────────────────────────
+st.success(f"Loaded {len(df_search):,} player rows")
+st.dataframe(df_search.head(50), use_container_width=True)

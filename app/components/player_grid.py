@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder
+import hashlib
 
 VISIBLE_COLS = ["player", "team", "minutes_played"]
 NICE_NAMES   = {"player": "Name", "team": "Team", "minutes_played": "Minutes"}
@@ -14,6 +15,9 @@ def _format_df(df: pd.DataFrame) -> pd.DataFrame:
 def render_grid(df: pd.DataFrame) -> pd.Series | None:
     ready = _format_df(df)
 
+    # Generate a unique key based on the current dataframe index and shape
+    df_key = hashlib.md5(pd.util.hash_pandas_object(ready).values).hexdigest()
+
     gb = GridOptionsBuilder.from_dataframe(ready)
     gb.configure_default_column(resizable=True, filter=True, sortable=True)
 
@@ -22,7 +26,7 @@ def render_grid(df: pd.DataFrame) -> pd.Series | None:
         gridOptions=gb.build(),
         height=480,
         theme="alpine",
-        key="player_grid_main",          # 🔑 single unique key
+        key=f"player_grid_{df_key}",  # 💡 unique key based on DF contents
     )
 
     rows = grid_response["selected_rows"]

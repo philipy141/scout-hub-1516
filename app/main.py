@@ -1,6 +1,5 @@
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-st.cache_data.clear()
 
 import streamlit as st
 from services.data_loader import load_players_df
@@ -10,8 +9,9 @@ from services.filter_utils import (
     filter_by_name, apply_all_filters,
 )
 from components.player_grid import render_grid
-from components.player_detail import render_detail   # optional drawer
+from components.player_detail import render_detail
 
+# ─── Page config ──────────────────────────────────────────────────────────
 st.set_page_config(page_title="Scout Hub 15/16", layout="wide")
 st.title("Scout Hub 2015/16 – MVP")
 
@@ -55,22 +55,25 @@ roles = st.sidebar.multiselect(
 # Name search
 search_name = st.sidebar.text_input("Search by name (≥3 chars)", value="")
 
-# ─── Apply all filters in one shot ────────────────────────────────────────
+# ─── Apply all filters at once ────────────────────────────────────────────
 df_search = apply_all_filters(df_all, league, teams, positions, roles, search_name)
-
 st.success(f"{len(df_search):,} players in view")
 
-# Render interactive grid (just once)
+# ─── Render interactive player grid ───────────────────────────────────────
 selected_now = render_grid(df_search, key="player_grid_main")
 
-# Keep selection across reruns (especially important on Streamlit Cloud)
+# Maintain selection across reruns (especially for Streamlit Cloud)
 if selected_now is not None:
     st.session_state["selected_player"] = selected_now
 
-# Retrieve from session_state
+# Retrieve from session state
 player = st.session_state.get("selected_player")
 
-# Conditional: Show player drawer
+# Optional: Debug
+st.write("DEBUG selected_now:", selected_now)
+st.write("DEBUG session player:", player)
+
+# ─── Player detail drawer ─────────────────────────────────────────────────
 if player is not None:
     render_detail(player)
 else:

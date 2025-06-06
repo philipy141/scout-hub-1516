@@ -41,3 +41,30 @@ def filter_by_team(df: pd.DataFrame, teams: list[str] | None) -> pd.DataFrame:
     if not teams or "All teams" in teams:
         return df
     return df[df["team"].isin(teams)]
+
+    # ─────────────────── POSITION + ROLE HELPERS ───────────────────────────────
+POSITION_FALLBACK = ["GK", "DF", "MF", "FW"]
+
+def available_positions(df: pd.DataFrame) -> list[str]:
+    """Return unique positions present; fallback to default list."""
+    if "position" in df.columns:
+        pos = sorted(df["position"].dropna().unique())
+        if pos:
+            return pos
+    return POSITION_FALLBACK
+
+def available_roles(df: pd.DataFrame) -> list[str]:
+    """Return unique roles present."""
+    if "role" in df.columns:
+        return sorted(df["role"].dropna().unique())
+    return []
+
+def filter_by_position(df: pd.DataFrame, positions: list[str] | None) -> pd.DataFrame:
+    if not positions or "All positions" in positions:
+        return df
+    return df[df["position"].isin(positions)]
+
+def filter_by_role(df: pd.DataFrame, roles: list[str] | None) -> pd.DataFrame:
+    if not roles or "All roles" in roles:
+        return df
+    return df[df["role"].isin(roles)]

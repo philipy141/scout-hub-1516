@@ -1,42 +1,55 @@
 import streamlit as st
 from services.data_loader import load_players_df
 from services.filter_utils import (
-    available_leagues,
-    filter_by_league,
-    available_teams,
-    filter_by_team,
+    available_leagues, filter_by_league,
+    available_teams,   filter_by_team,
+    available_positions, filter_by_position,
+    available_roles,     filter_by_role,
 )
 
 st.set_page_config(page_title="Scout Hub 15/16", layout="wide")
 st.title("Scout Hub 2015/16 – MVP")
 
-df = load_players_df()
-st.success(f"Loaded {len(df):,} player rows")
+df_all = load_players_df()
+st.success(f"Loaded {len(df_all):,} player rows")
 st.info("🚧 Feature work in progress. Use the sidebar to navigate.")
 
-# ── Sidebar: League selector ───────────────────────────────────────────────
+# ── Sidebar: League filter ──────────────────────────────────────────────
 st.sidebar.header("Filters")
-
-all_league_label = f"All ({len(df):,} players)"
 league = st.sidebar.selectbox(
     "League",
-    [all_league_label] + available_leagues(df),
+    [f"All ({len(df_all):,} players)"] + available_leagues(df_all),
     index=0,
 )
+df_league = filter_by_league(df_all, league)
 
-df_league = filter_by_league(df, league)
-
-# ── Sidebar: Team multi-select (cascades) ──────────────────────────────────
+# ── Sidebar: Team filter (cascading) ────────────────────────────────────
 team_list = available_teams(df_league, league)
-all_team_label = "All teams"
 teams_selected = st.sidebar.multiselect(
     "Team (multi-select)",
-    [all_team_label] + team_list,
-    default=all_team_label,
+    ["All teams"] + team_list,
+    default="All teams",
 )
+df_team = filter_by_team(df_league, teams_selected)
 
-df = filter_by_team(df_league, teams_selected)
+# ── Sidebar: Position filter (independent) ─────────────────────────────
+pos_list = available_positions(df_team)
+positions_selected = st.sidebar.multiselect(
+    "Position",
+    ["All positions"] + pos_list,
+    default="All positions",
+)
+df_pos = filter_by_position(df_team, positions_selected)
 
-# ── Main body ──────────────────────────────────────────────────────────────
-st.success(f"Loaded {len(df):,} player rows")
-st.dataframe(df.head(50), use_container_width=True)
+# ── Sidebar: Role filter (independent) ─────────────────────────────────
+role_list = available_roles(df_pos)
+roles_selected = st.sidebar.multiselect(
+    "Role",
+    ["All roles"] + role_list,
+    default="All roles",
+)
+df_final = filter_by_role(df_pos, roles_selected)
+
+# ── Main body ───────────────────────────────────────────────────────────
+st.success(f"Loaded {len(df_final):,} player rows")
+st.dataframe(df_final.head(50), use_container_width=True)

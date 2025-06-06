@@ -1,7 +1,15 @@
 import pandas as pd
 from app.services.filter_utils import available_leagues, filter_by_league
-from app.services.filter_utils import available_teams, filter_by_team
-
+from app.services.filter_utils import (
+    available_leagues,
+    filter_by_league,
+    available_teams,
+    filter_by_team,
+    available_positions,
+    available_roles,
+    filter_by_position,
+    filter_by_role,
+)
 
 def test_filter_returns_subset():
     data = {
@@ -35,3 +43,19 @@ def test_filter_by_team_multi():
     df = pd.DataFrame(data)
     sub = filter_by_team(df, ["A", "C"])
     assert len(sub) == 2 and set(sub["team"]) == {"A", "C"}
+
+def test_position_role_filters():
+    df = pd.DataFrame({
+        "position": ["GK", "DF", "DF", "MF"],
+        "role": ["Sweeper", "CB", "LB", "CM"],
+    })
+    # available lists
+    assert available_positions(df) == ["DF", "GK", "MF"]
+    assert available_roles(df) == ["CB", "CM", "LB", "Sweeper"]
+
+    # filtering
+    out = filter_by_position(df, ["DF"])
+    assert len(out) == 2 and out["position"].unique()[0] == "DF"
+
+    out2 = filter_by_role(df, ["LB", "CM"])
+    assert len(out2) == 2 and set(out2["role"]) == {"LB", "CM"}

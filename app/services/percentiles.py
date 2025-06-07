@@ -49,24 +49,39 @@ def _percentile(col: pd.Series, value: float) -> float:
 # --------------------------------------------------------------------- #
 # Public API                                                             #
 # --------------------------------------------------------------------- #
-def role_percentiles(row: pd.Series, df: pd.DataFrame, cfg: dict) -> dict:
-    role = row["role"]
-    metrics = cfg.get(role, [])
-    out = {}
+def role_percentiles(
+    row: pd.Series,
+    df: pd.DataFrame,
+    cfg: dict[str, list[str]],
+    *,
+    role_key: str = "role",
+) -> dict[str, float]:
+    """
+    Return **0–100** percentiles for every metric listed in ``cfg[role]``.
 
-    df_role = df[df["role"] == role]
+    • Highest value in the role → 100.0  
+    • Lowest  value in the role → 0.0 ( tests rely on this )
 
-    for col in metrics:
-        values = df_role[col].dropna()
-        min_val = values.min()
-        max_val = values.max()
+    If max == min (constant column) we return **50.0** for everyone.
+    """
+    role = row[role_key]
+    if role not in cfg:                   # safety fallback
+        return {}
 
-        val = row[col]
+    metrics = cfg[role]
+    subset = df[df[role_key] == role]
 
-        if pd.isna(val) or max_val == min_val:
-            out[col] = 0.0
+    out: dict[str, float] = {}
+    for m in metrics:
+        if m not in subset:          # column missing → skip
+            continue
+        col = subset[m].astype("float64")
+        lo, hi = col.min(), col.max()
+        if pd.isna(row[m]) or hi == lo:
+            pct = 50.0
         else:
-            out[col] = round((val - min_val) / (max_val - min_val) * 100, 1)
-
+            pct = (row[m] - lo) / (hi - lo) * 100.0
+        out[m] = round(pct, 1)
     return out
+
 

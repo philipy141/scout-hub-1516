@@ -1,14 +1,15 @@
 """
 Reusable radar-chart builder.
 
-Call `build_radar(metric_dict, order=None, title="")` with a dict like:
+Call `build_radar(metric_dict, title="", raw=None)` with a dict like:
     {
         "goals_per90":     87.4,
         "xg_per_shot":     42.0,
         "progressive_carries": 66.7,
         ...
     }
-Returns a Plotly `go.Figure`.  
+Returns a Plotly `go.Figure`.
+
 Use `save_png(fig, path)` to persist ≤50 kB PNGs.
 """
 
@@ -21,57 +22,39 @@ import plotly.io as pio
 
 
 # ─────────────────────────── Core builder ────────────────────────────────
-def build_radar(
-    metrics: Dict[str, float],
-    order: Sequence[str] | None = None,
-    title: str = "",
-) -> go.Figure:
-    """
-    Build a closed‐polygon radar chart.
+def build_radar(metrics: dict, raw: dict | None = None, title: str = "") -> go.Figure:
+    if not metrics:
+        return go.Figure()
 
-    Parameters
-    ----------
-    metrics : dict[str, float]
-        Mapping metric → percentile (0-100).
-    order : sequence[str] | None
-        Radial order. If None, natural key order is used.
-    title : str
-        Optional title.
-
-    Returns
-    -------
-    go.Figure
-    """
-    if order is None:
-        order = list(metrics.keys())
-
-    # ensure order has only keys in dict
-    order = [m for m in order if m in metrics]
-
-    # ensure closed polygon by repeating first value
+    order = list(metrics.keys())
     r = [metrics[m] for m in order] + [metrics[order[0]]]
-    theta = list(order) + [order[0]]
+    theta = order + [order[0]]
+
+    # Prepare tooltip text if raw is provided
+    if raw:
+        hover = [f"{m}: {raw.get(m, '–')}" for m in order]
+        hover += [hover[0]]  # close the loop
+    else:
+        hover = None
 
     fig = go.Figure(
-        go.Scatterpolar(
+        data=go.Scatterpolar(
             r=r,
             theta=theta,
-            fill="toself",
-            line=dict(width=2),
+            fill='toself',
+            name=title,
+            hovertext=hover,
+            hoverinfo="text" if hover else "all"
         )
     )
-
     fig.update_layout(
-        polar=dict(
-            radialaxis=dict(range=[0, 100], tickvals=[0, 25, 50, 75, 100]),
-        ),
+        polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
         showlegend=False,
-        title=title,
-        margin=dict(l=30, r=30, t=60, b=30),
+        margin=dict(t=40, r=40, b=40, l=40),
         height=400,
     )
-
     return fig
+
 
 
 # ─────────────────────── PNG helper (≤50 kB) ─────────────────────────────
@@ -81,12 +64,10 @@ def save_png(fig: go.Figure, path: str, scale: float = 1.0) -> Tuple[str, int]:
 
     Returns (path, size_bytes).
     """
-    # Try down-scaling until small enough (max 5 attempts)
     for s in [1.0, 0.9, 0.8, 0.7, 0.6]:
         buf = pio.to_image(fig, format="png", scale=scale * s)
         if len(buf) <= 50_000 or s == 0.6:
             with open(path, "wb") as f:
                 f.write(buf)
             return path, len(buf)
-    # Should never reach here
     raise RuntimeError("Could not shrink PNG below 50 kB")

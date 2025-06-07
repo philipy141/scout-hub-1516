@@ -1,0 +1,151 @@
+Below is a hands-on build-spec to bolt a Discounted-Cash-Flow (DCF) valuation module onto your existing player table.
+Use it as the task list you copy into Trello/Jira (Sprint DCF = one week).
+
+0. Data Model Add-Ons (one migration)
+New column (SQLite)	Type	How to populate for 15/16 demo	Why it matters
+age_2015	REAL	DOB → age on 01-Jul-2015	driver of decline curve
+contract_years_left	INTEGER	Transfermarkt “Contract expires” – 2016	amortisation horizon
+annual_wage_eur	REAL	Capology / press ± rough	cash-outflow
+transfer_fee_eur	REAL	Transfermarkt reported fee	amortisation + IRR
+expected_resale_eur	REAL	= 0.4 × transfer_fee_eur (placeholder)	terminal cash-inflow
+minutes_projection_json	TEXT	filled by model (see below)	drives prize-money share
+
+Migration script (Codex):
+
+sql
+Copiar
+Editar
+ALTER TABLE players16
+ADD COLUMN age_2015 REAL;
+-- repeat for each new column …
+1. Assumptions File (fin_config.yml)
+yaml
+Copiar
+Editar
+discount_rate:
+  base_wacc: 0.08          # 8 % nominal
+  age_risk_coeff: 0.004    # +0.4 pp per age over 27
+revenue_coeff:
+  league_point: 120000     # € per additional league point
+  europa_round: 500000
+  ucl_round: 2000000
+resale_growth_by_role:
+  FW: 0.10                 # 10 % CAGR until age 27
+  MF: 0.07
+  DF: 0.05
+  GK: 0.03
+minutes_curve:
+  peak_age: 27
+  decline_rate: 0.05       # 5 % fewer minutes per year past peak
+Why YAML? Easy to tweak during the interview: “Change WACC to 7 % and watch PV update.”
+
+2. Minutes Projection Function
+python
+Copiar
+Editar
+def projected_minutes(current_minutes, age, years, cfg):
+    peak = cfg["minutes_curve"]["peak_age"]
+    decline = cfg["minutes_curve"]["decline_rate"]
+    curve = []
+    for t in range(years):
+        age_t = age + t
+        factor = 1 - max(age_t - peak, 0) * decline
+        curve.append(max(current_minutes * factor, 0))
+    return curve          # length = years
+Store the list as JSON in minutes_projection_json if you want to cache results.
+
+3. Cash-Flow Builder
+python
+Copiar
+Editar
+def player_cashflows(row, cfg):
+    years = int(row["contract_years_left"])
+    minutes_curve = projected_minutes(row["minutes_played"], row["age_2015"],
+                                      years, cfg)
+    # --- Operating inflows ---------------------------------
+    league_CF = np.array(minutes_curve) / 3000 * cfg["revenue_coeff"]["league_point"] * 3
+    # crude: assume +3 points per 3,000 good minutes
+    # --- Operating outflows --------------------------------
+    wage_CF   = -np.full(years, row["annual_wage_eur"])
+    amort_CF  = -np.full(years, row["transfer_fee_eur"] / years)
+    # --- Terminal value ------------------------------------
+    resale_CF = np.zeros(years)
+    resale_CF[-1] = row["expected_resale_eur"]
+    # -------------------------------------------------------
+    return league_CF + wage_CF + amort_CF + resale_CF
+4. Discount Rate per Player
+python
+Copiar
+Editar
+def player_discount_rate(row, cfg):
+    base = cfg["discount_rate"]["base_wacc"]
+    age_adj = max(row["age_2015"] - 27, 0) * cfg["discount_rate"]["age_risk_coeff"]
+    return base + age_adj
+5. Net-Present-Value Calculator
+python
+Copiar
+Editar
+def dcf_value(row, cfg):
+    cf = player_cashflows(row, cfg)
+    r  = player_discount_rate(row, cfg)
+    years = np.arange(1, len(cf)+1)
+    pv = np.sum(cf / (1 + r) ** years)
+    return pv
+Add a vectorised wrapper so you can run:
+
+python
+Copiar
+Editar
+df["fair_value_eur"] = df.apply(lambda x: dcf_value(x, cfg), axis=1)
+df["delta_vs_market"] = df["fair_value_eur"] - df["transfer_fee_eur"]
+6. Streamlit Integration (MVP)
+python
+Copiar
+Editar
+st.header("DCF Valuation")
+player = st.selectbox("Player", df["player"])
+row    = df[df["player"] == player].iloc[0]
+st.metric("Fair Value (€m)", f"{row.fair_value_eur/1e6:,.1f}")
+st.metric("Δ vs. Fee (€m)", f"{row.delta_vs_market/1e6:,.1f}",
+          delta_color="inverse")
+with st.expander("Assumptions"):
+    st.write(cfg)
+st.bar_chart(player_cashflows(row, cfg))
+Now a director can tweak YAML in the sidebar (Streamlit st.sidebar.number_input) and see the valuation refresh.
+
+7. Unit Tests (pytest)
+python
+Copiar
+Editar
+def test_npv_positive_for_positive_cfs():
+    cfg = load_cfg()
+    row = sample_row.copy()
+    row["annual_wage_eur"] = 0
+    row["transfer_fee_eur"] = 0
+    val = dcf_value(row, cfg)
+    assert val > 0
+8. Demo Script (CLI)
+bash
+Copiar
+Editar
+python demo_dcf.py --player "Riyad Mahrez" --cfg fin_config.yml
+Outputs:
+
+yaml
+Copiar
+Editar
+Fair Value (15/16) : €54.2m
+Market Fee Paid    : €0.6m
+Underpricing       : €53.6m
+Next Steps Checklist (Sprint DCF)
+Populate new columns for 30 marquee players (manual CSV is fine).
+
+Run the functions above in a notebook; verify numbers “make sense.”
+
+Bolt the Streamlit tab.
+
+Create two PDF one-pagers (Mahrez, N’Golo Kanté) using values.
+
+Once these four tasks are green, your DCF module is demo-ready.
+
+Need adjustments to the coefficients, or help turning the notebook into tests? Ping me and we’ll refine the snippets without burning your Codex tokens.

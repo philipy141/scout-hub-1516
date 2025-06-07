@@ -1,0 +1,14 @@
+{
+  "number": {"type": "numericColumn"},
+  "object": {"type": "textColumn"},
+  "bool": {"type": "booleanColumn"},
+  "boolean": {"type": "booleanColumn"},
+  "category": {"type": "textColumn"},
+  "datetime64": {"type": "dateColumn"},
+  "datetime": {"type": "dateColumn"},
+  "datetimetz": {"type": "dateColumn"},
+  "date": {"type": "dateColumn"},
+  "int64": {"type": "numericColumn"},
+  "float64": {"type": "numericColumn"},
+  "string": {"type": "textColumn"}
+}

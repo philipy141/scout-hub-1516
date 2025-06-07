@@ -1,0 +1,42 @@
+{
+  "lang_label": {
+    "en": "Language",
+    "nl": "Taal"
+  },
+  "en": {
+    "app_title": "Scout Hub 2015/16 – MVP",
+    "filters_header": "Filters",
+    "league": "League",
+    "teams": "Teams",
+    "positions": "Positions",
+    "roles": "Roles",
+    "search_name": "Search by name (≥3 chars)",
+    "player_select": "Select player to see details ▶️",
+    "no_player": "—",
+    "players_in_view": "{count:,} players in view",
+    "similar_header": "Similar players",
+    "delta_score": "Δ {delta:.3f}",
+    "no_radar": "No radar data available for this player.",
+    "download_radar": "📥 Download radar as PNG",
+    "filters_tooltip": "Filter the list of players"
+    // …and so on for every string you surface in the UI
+  },
+  "nl": {
+    "app_title": "Scout Hub 2015/16 – MVP",
+    "filters_header": "Filteren",
+    "league": "Competitie",
+    "teams": "Teams",
+    "positions": "Posities",
+    "roles": "Rollen",
+    "search_name": "Zoek op naam (≥3 tekens)",
+    "player_select": "Selecteer speler ▶️",
+    "no_player": "—",
+    "players_in_view": "{count:,} spelers zichtbaar",
+    "similar_header": "Vergelijkbare spelers",
+    "delta_score": "Δ {delta:.3f}",
+    "no_radar": "Geen radar-data beschikbaar voor deze speler.",
+    "download_radar": "📥 Radar als PNG downloaden",
+    "filters_tooltip": "Filter de lijst met spelers"
+    // …etc.
+  }
+}
